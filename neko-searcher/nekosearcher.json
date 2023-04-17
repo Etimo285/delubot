@@ -1,0 +1,7 @@
+{
+    "selectors": {
+        "searchInput": "input[name='search']",
+        "animes": "#ajax-list-animes .anime"
+    }
+
+}
