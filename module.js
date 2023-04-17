@@ -24,7 +24,10 @@ class Module {
             { name: 'VOSTFR', value: 'anime' },
             { name: 'VF', value: 'anime-vf' },
           )
-      )
+      ),
+      new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('Replies with Pong!')
     ]
   }
 
@@ -36,43 +39,72 @@ class Module {
     client.on("interactionCreate", (interaction) => {
       if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
+          case 'ping':
+            this.ping(interaction)
+            break;
           case 'neko':
-            this.nekoSearch(interaction, interaction.channel)
+            this.nekoSearch(interaction)
             break;
           default:
             break;
         }
       } else if (interaction.isButton()) {
-        switch (interaction.customId) {
-          case 'previous':
-            
-            break;
-          case 'next':
-          
-          break;
-          default:
-            break;
-        }
+        interaction.deferUpdate()
       }
     })
   }
 
-  ping(interaction) {
+  async ping(interaction) {
     const user = interaction.user;
-    const url = 'https://tenor.com/view/pong-video-game-atari-tennis-70s-gif-16894549';
-    const gif = 'https://c.tenor.com/2gyJVMt_L6wAAAAC/pong-video-game.gif';
-    interaction.reply({
+    const url = 'https://tenor.com/view/pong-video-game-atari-tennis-70s-gif-16894549'
+    const gif = 'https://c.tenor.com/2gyJVMt_L6wAAAAC/pong-video-game.gif'
+    const gif0 = 'https://media.tenor.com/ZBVQpHH9YfkAAAAC/oh-no-joseph-joestar.gif'
+    const gif1 = 'https://media.tenor.com/p45pEdZ3j8MAAAAC/skeleton-waiting-for-you.gif'
+    
+    const pang = new ButtonBuilder()
+			.setCustomId('pang')
+			.setLabel('Pang ! !')
+			.setStyle(ButtonStyle.Danger)
+    
+    const row = new ActionRowBuilder()
+      .addComponents(pang)
+    
+    const response = await interaction.reply({
       embeds: [
-        this.MessageEmbedBuilder(user, gif, 'ping', url, 'pong !', gif, 'totoboto4 ping services')
-      ]
-    });
+        this.MessageEmbedBuilder(user, user.avatarURL(), 'ping', url, 'pong !', gif, 'totoboto4 ping services')
+      ],
+      components: [row]
+    })
+
+    const filter = i => i.user.id === interaction.user.id;
+    try {
+      const panged = await response.awaitMessageComponent({ filter, time: 60000 });
+
+      if (panged.customId === 'pang') {
+        await interaction.editReply({
+          embeds: [
+            this.MessageEmbedBuilder(user, user.avatarURL(), 'pong', url, 'got panged ! !', gif0, `${user.username} pang services !!`)
+          ],
+          components: []
+        });
+      }
+    } catch (e) {
+      await interaction.editReply({
+        embeds: [
+          this.MessageEmbedBuilder(user, user.avatarURL(), 'Dead Bored', url, 'You so boring, I\'m dead of waiting.', gif1, `${user.username} boring services...`)
+        ],
+        components: []
+      });
+    }
   }
 
-  async nekoSearch(interaction, channel) {
+
+
+  async nekoSearch(interaction) {
     const searchInput = interaction.options.get('animetosearch').value
     let animeVersion = "VOSTFR"
     if (interaction.options.get('version') !== null) {
-      animeVersion = interaction.options.get('version').value
+      animeVersion = interaction.options.get('version').value === "anime-vf" ? "VF" : "VOSTFR"
     }
     interaction.reply(`Recherche ${searchInput} ${animeVersion} ...`)
     const nekosearcher = nekosearcherFactory.create()
@@ -82,47 +114,96 @@ class Module {
     const infos = await nekosearcher.getResults()
 
     const embeds = []
+    let position = 0
 
     for (let info of infos) {
       embeds.push(
         this.MessageEmbedBuilder(
+          'Navy',
           interaction.user,
           "https://pbs.twimg.com/profile_images/1243051218311827456/-JN_faKB_400x400.jpg",
           `${info.title} ${animeVersion}`,
           info.link,
           `Recherche originale : ${searchInput} \n Lien : ${info.link}`,
           info.cover,
-          `${info.year} - ${info.episodes}`
+          `Page ${infos.indexOf(info)+1}/${infos.length} - ${info.year} - ${info.episodes}`
         )
       )
     }
 
-    const previousButton = new ButtonBuilder()
+    let previousButton = new ButtonBuilder()
 			.setCustomId('previous')
 			.setEmoji("◀️")
 			.setStyle(ButtonStyle.Secondary)
-    const nextButton = new ButtonBuilder()
+      .setDisabled(position === 0 ? true : false)
+    let nextButton = new ButtonBuilder()
       .setCustomId('next')
       .setEmoji("▶️")
       .setStyle(ButtonStyle.Secondary)
+      .setDisabled(position === embeds.length-1 ? true : false)
+    let linkButton = new ButtonBuilder()
+      .setLabel('Regarder sur Neko-Sama')
+      .setStyle(ButtonStyle.Link)
+    const row = new ActionRowBuilder()
+      .addComponents(previousButton, nextButton, linkButton)
     
     if (!infos.length)
-      interaction.editReply("Aucun résultats ∩┐\(◣_◢\)┌∩┐")
-    else
-      interaction.editReply({
-        embeds: [embeds[0]],
-        components: [
-          new ActionRowBuilder()
-            .addComponents(previousButton, nextButton)
-        ]
-    })
+      interaction.editReply(`Aucun résultats pour ${searchInput}.`)
+    else {
+      linkButton
+        .setURL(infos[0].link)
+      await refresh()
+    }
 
+    async function refresh() {
+      const response = await interaction.editReply({
+        content: "",
+        embeds: [embeds[position]],
+        components: [row]
+      })
+
+      //const filter = i => i.user.id === interaction.user.id;
+      try {
+        const btnPress = await response.awaitMessageComponent({ time: 120000 })
+
+        switch (btnPress.customId) {
+          case 'previous':
+            position--
+            break
+          case 'next':
+            position++
+            break
+          default:
+            break
+        }
+
+        nextButton
+            .setDisabled(position === embeds.length-1 ? true : false)
+        previousButton
+            .setDisabled(position === 0 ? true : false)
+        linkButton
+            .setURL(infos[position].link)
+
+        await interaction.editReply({
+          embeds: [embeds[position]],
+          components: [row]
+        });
+
+        refresh()
+
+      } catch (e) {
+        await interaction.editReply({
+          components: []
+        })
+      }
+    }
+    
     nekosearcher.close()
   }
 
-  MessageEmbedBuilder(author, thumbnail, title, url, description, image, footer) {
+  MessageEmbedBuilder(color, author, thumbnail, title, url, description, image, footer) {
     return new EmbedBuilder()
-      .setColor('Navy')
+      .setColor(color)
       .setAuthor({
         name: author.username
       })
