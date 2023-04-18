@@ -1,7 +1,40 @@
 {
     "selectors": {
         "searchInput": "input[name='search']",
-        "animes": "#ajax-list-animes .anime"
-    }
-
+        "searchedAnimes": "#ajax-list-animes .anime",
+        "sortedAnimes": "#regular-list-animes .anime",
+        "genresBtn": ".genres>div",
+        "genresPopUp": ".genres-pop-out",
+        "genresPopUpItems": ".genres-pop-out div"
+    },
+    "genres": [
+        { "name": "Action", "value": "action" },
+        { "name": "Aventure", "value": "adventure" },
+        { "name": "Battle Royale", "value": "battle royale" },
+        { "name": "Comédie", "value": "c0m1dy" },
+        { "name": "Cyberpunk", "value": "cyberpunk" },
+        { "name": "Drama", "value": "drama" },
+        { "name": "Ecchi", "value": "ecchi" },
+        { "name": "Fantastique", "value": "fantasy" },
+        { "name": "Hentai", "value": "hentai" },
+        { "name": "Horreur", "value": "horror" },
+        { "name": "Isekai", "value": "isekai" },
+        { "name": "Mafia", "value": "mafia" },
+        { "name": "Magique", "value": "magic" },
+        { "name": "Magical Girl", "value": "mahou shoujo" },       
+        { "name": "Mecha", "value": "mecha" },
+        { "name": "Militaire", "value": "military" },
+        { "name": "Musique", "value": "music" },
+        { "name": "Mystère", "value": "mystery" },
+        { "name": "Psychologique", "value": "psychological" },
+        { "name": "Romance", "value": "romance" },
+        { "name": "Sci-Fi", "value": "sci-fi" },
+        { "name": "Shoujo", "value": "shoujo" },
+        { "name": "Shounen", "value": "shounen" },
+        { "name": "Tranche de vie", "value": "slice of life" },
+        { "name": "Sports", "value": "sports" },
+        { "name": "Surnaturel", "value": "supernatural" },
+        { "name": "Suspense", "value": "thriller" },
+        { "name": "Yuri", "value": "yuri" }
+    ]
 }
