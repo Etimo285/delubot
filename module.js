@@ -6,10 +6,11 @@ class Module {
   constructor () {
     this.name = 'Delubot'
     this.version = '1.0.0'
+    this.prefix = 'delu'
 
     this.commands = [
       new SlashCommandBuilder()
-        .setName('nekosearch')
+        .setName(`${this.prefix}-nekosearch`)
         .setDescription('Cherche un anime sur Neko-Sama')
         .addStringOption(option =>
           option
@@ -37,7 +38,7 @@ class Module {
     client.on('interactionCreate', async (interaction) => {
       if (interaction.isChatInputCommand()) {
         switch (interaction.commandName) {
-          case 'nekosearch':
+          case `${this.prefix}-nekosearch`:
             this.nekoSearch(interaction)
             break
           default:
