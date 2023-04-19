@@ -1,8 +1,6 @@
 const { EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js')
 const nekosearcherFactory = require('./neko-searcher/nekosearcherFactory')
 const { genres } = require('./neko-searcher/nekosearcher.json')
-const gigaPaginator = require('./utils/gigapaginator')
-const { uid } = require('uid')
 
 class Module {
   constructor () {
@@ -27,18 +25,6 @@ class Module {
               { name: 'VOSTFR', value: 'anime' },
               { name: 'VF', value: 'anime-vf' }
             )
-        ),
-      new SlashCommandBuilder()
-        .setName('nekopop')
-        .setDescription('Récupère la liste des animes populaires selon un paramètre de tri')
-        .addStringOption(option =>
-          option
-            .setName('sortby')
-            .setDescription('Le paramètre de tri')
-            .setRequired(true)
-            .addChoices(
-              { name: 'Genre', value: 'genre' }
-            )
         )
     ]
   }
@@ -54,9 +40,6 @@ class Module {
           case 'nekosearch':
             this.nekoSearch(interaction)
             break
-          case 'nekopop':
-            this.nekoPop(interaction)
-            break
           default:
             break
         }
@@ -64,85 +47,6 @@ class Module {
         interaction.deferUpdate()
       }
     })
-  }
-
-  async nekoPop (interaction) {
-    let position = 0
-
-    await interaction.reply({
-      content: 'Chargement...'
-    })
-
-    const previousButton = new ButtonBuilder()
-      .setCustomId('previous')
-      .setEmoji('◀️')
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled()
-    const nextButton = new ButtonBuilder()
-      .setCustomId('next')
-      .setEmoji('▶️')
-      .setStyle(ButtonStyle.Secondary)
-    const row = new ActionRowBuilder()
-      .addComponents(previousButton, nextButton)
-
-    await refresh()
-
-    async function refresh () {
-      const genreTextList = []
-
-      for (const genre of genres) {
-        genreTextList.push(
-          genre.name
-        )
-      }
-
-      genreTextList[position] = '> ' + genreTextList[position]
-
-      const response = await interaction.editReply({
-        content: 'Choisissez un genre',
-        embeds: [
-          new EmbedBuilder()
-            .setDescription(genreTextList.join('\n'))
-        ],
-        components: [row]
-      })
-
-      // const filter = i => i.user.id === interaction.user.id
-      try {
-        const btnPress = await response.awaitMessageComponent({ time: 120000 })
-
-        switch (btnPress.customId) {
-          case 'previous':
-            position--
-            break
-          case 'next':
-            position++
-            break
-          default:
-            break
-        }
-
-        nextButton
-          .setDisabled(position === genreTextList.length - 1)
-        previousButton
-          .setDisabled(position === 0)
-        genreTextList[position] = '> ' + genreTextList[position]
-
-        await interaction.editReply({
-          embeds: [
-            new EmbedBuilder()
-              .setDescription(genreTextList.join('\n'))
-          ],
-          components: [row]
-        })
-
-        refresh()
-      } catch (e) {
-        await interaction.editReply({
-          components: []
-        })
-      }
-    }
   }
 
   async nekoSearch (interaction) {
@@ -155,7 +59,7 @@ class Module {
     const nekosearcher = nekosearcherFactory.create()
     await nekosearcher.init(true, 10, animeVersion === 'VOSTFR' ? 'anime' : 'anime-vf')
     await nekosearcher.search(searchInput)
-    const infos = await nekosearcher.getResults(true)
+    const infos = await nekosearcher.getResults({ isSearched: true })
 
     const embeds = []
     let position = 0
